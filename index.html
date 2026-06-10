@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StackBuilder - Simulador Interactivo de Ecosistema Java Full-Stack</title>
+  <meta name="description" content="Una plataforma didáctica interactiva basada en física 2D que simula las dependencias y la solidez de un programa de desarrollo de software Full-Stack con bloques Lego.">
+  <link rel="stylesheet" href="styles.css">
+  <!-- Cargar Matter.js para el motor físico -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js?cb=1"></script>
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- PANEL LATERAL DE CONTROL (Glassmorphism) -->
+    <aside class="sidebar">
+      
+      <!-- Marca y Título -->
+      <div class="brand">
+        <div class="brand-icon">S</div>
+        <div class="brand-info">
+          <h1>StackBuilder</h1>
+          <p>Ecosistema Java Full-Stack</p>
+        </div>
+      </div>
+
+      <!-- Tarjeta 1: Monitor de Estabilidad en Tiempo Real -->
+      <div class="glass-panel stability-container">
+        <span class="stability-title">Estabilidad del Sistema</span>
+        
+        <div class="radial-progress-container">
+          <svg class="radial-svg" viewBox="0 0 140 140">
+            <circle class="radial-bg" cx="70" cy="70" r="60"></circle>
+            <circle id="stability-ring" class="radial-bar" cx="70" cy="70" r="60"></circle>
+          </svg>
+          <div class="stability-value">
+            <span id="stability-number" class="stability-number">100</span>
+            <span class="stability-percent">%</span>
+          </div>
+        </div>
+
+        <div id="stability-label" class="stability-status">SÓLIDO</div>
+
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-label">En la Torre</div>
+            <div id="stat-active" class="stat-val">12</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Caídos/Suelos</div>
+            <div id="stat-fallen" class="stat-val alert-danger">0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta 2: Panel de Acciones y Parámetros -->
+      <div class="glass-panel controls-container">
+        <span class="controls-title">Controles Físicos</span>
+        
+        <!-- Control de Gravedad -->
+        <div class="range-group">
+          <div class="range-header">
+            <span class="range-label">Gravedad</span>
+            <span id="gravity-val" class="range-value">0.4 G</span>
+          </div>
+          <input type="range" id="gravity-slider" min="0" max="1.5" step="0.1" value="0.4">
+        </div>
+
+          <!-- Lanzamiento de Nuevos Bloques -->
+          <div class="select-group">
+            <label for="block-spawn-select">Agregar bloque didáctico:</label>
+            <div class="select-wrapper">
+              <select id="block-spawn-select">
+                <!-- Se cargará dinámicamente desde JS -->
+              </select>
+              <button id="spawn-btn" class="btn">Lanzar</button>
+            </div>
+          </div>
+
+        <!-- Botón de Reiniciar Ecosistema -->
+        <button id="reset-btn" class="btn btn-primary btn-block">
+          <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 4px;">
+            <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/>
+            <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/>
+          </svg>
+          Reiniciar Ecosistema
+        </button>
+      </div>
+
+      <!-- Tarjeta 3: Instrucción Didáctica -->
+      <div class="glass-panel instruction-card">
+        <h3>¿Cómo interactuar?</h3>
+        <ol>
+          <li>Haz <strong>clic y arrastra</strong> cualquier bloque para extraerlo de la torre.</li>
+          <li><strong>Arrastra a la papelera</strong> para eliminar la competencia de tu carrera.</li>
+          <li>Observa cómo los cimientos caídos impactan la estabilidad profesional.</li>
+        </ol>
+      </div>
+    </aside>
+
+    <!-- ZONA DE SIMULACIÓN -->
+    <main class="simulator-container">
+      
+      <div class="canvas-frame">
+        <!-- Canvas para renderizar Matter.js -->
+        <canvas id="simulator-canvas" width="850" height="650"></canvas>
+      </div>
+
+      <!-- Leyenda Didáctica en la base -->
+      <footer class="legend-panel">
+        <div class="legend-item">
+          <div class="legend-dot dot-base"></div>
+          <span>Bases Fundacionales</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot dot-struct"></div>
+          <span>Estructura Aplicativa</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot dot-quality"></div>
+          <span>Calidad y Conectores</span>
+        </div>
+      </footer>
+
+      <!-- Etiquetas de Sub-categoría por Tema General -->
+      <div class="subcategory-panel">
+
+        <!-- Bases Fundacionales -->
+        <div class="subcat-group">
+          <span class="subcat-group-title">Bases Fundacionales</span>
+          <div class="subcat-tags">
+            <span class="subcat-tag" data-parent="java_core" style="--tag-color: #3A86FF;">Java Core</span>
+            <span class="subcat-tag" data-parent="databases" style="--tag-color: #00B4D8;">Bases de Datos</span>
+            <span class="subcat-tag" data-parent="bases_fundamentals" style="--tag-color: #0077B6;">Fundamentos</span>
+          </div>
+        </div>
+
+        <!-- Estructura Aplicativa -->
+        <div class="subcat-group">
+          <span class="subcat-group-title">Estructura Aplicativa</span>
+          <div class="subcat-tags">
+            <span class="subcat-tag" data-parent="frontend_core" style="--tag-color: #FFBE0B;">Frontend Core</span>
+            <span class="subcat-tag" data-parent="spring_boot" style="--tag-color: #FF006E;">Spring Boot</span>
+            <span class="subcat-tag" data-parent="architecture" style="--tag-color: #FB5607;">Arquitectura</span>
+            <span class="subcat-tag" data-parent="react_js" style="--tag-color: #FF9F1C;">React JS</span>
+          </div>
+        </div>
+
+        <!-- Calidad y Conectores -->
+        <div class="subcat-group">
+          <span class="subcat-group-title">Calidad y Conectores</span>
+          <div class="subcat-tags">
+            <span class="subcat-tag" data-parent="scrum" style="--tag-color: #8338EC;">Scrum</span>
+            <span class="subcat-tag" data-parent="testing" style="--tag-color: #38B000;">Testing</span>
+            <span class="subcat-tag" data-parent="git" style="--tag-color: #70E000;">Git</span>
+            <span class="subcat-tag" data-parent="dev_ops" style="--tag-color: #9D4EDD;">DevOps</span>
+            <span class="subcat-tag" data-parent="security" style="--tag-color: #E0115F;">Seguridad</span>
+          </div>
+        </div>
+
+        <!-- Habilidades Blandas -->
+        <div class="subcat-group">
+          <span class="subcat-group-title">Habilidades Blandas</span>
+          <div class="subcat-tags">
+            <span class="subcat-tag" data-parent="soft_skills" style="--tag-color: #2A9D8F;">Soft Skills</span>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- BARRA DE CONTACTO / CRÉDITOS -->
+  <div class="contact-bar">
+    <span class="contact-name">Isa Dev</span>
+    <div class="contact-links">
+      <a href="mailto:icapla.92@gmail.com" class="contact-btn" title="Correo electrónico">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+        icapla.92@gmail.com
+      </a>
+      <a href="https://github.com/isa-capa" target="_blank" rel="noopener" class="contact-btn" title="GitHub">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+        GitHub
+      </a>
+      <a href="https://www.linkedin.com/in/isadev/" target="_blank" rel="noopener" class="contact-btn" title="LinkedIn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+        LinkedIn
+      </a>
+      <a href="https://isa-capa.github.io/portfolio/" target="_blank" rel="noopener" class="contact-btn" title="Portafolio">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        Portafolio
+      </a>
+    </div>
+  </div>
+
+  <!-- TOOLTIP FLOTANTE (HTML interactivo posicionado por JS) -->
+  <div id="lego-tooltip" class="tooltip">
+    <div class="tooltip-header">
+      <span id="tooltip-title" class="tooltip-title">Título de Bloque</span>
+      <span id="tooltip-badge" class="tooltip-badge badge-base">Base</span>
+    </div>
+    <p id="tooltip-desc" class="tooltip-desc">Descripción detallada de la materia en el bootcamp.</p>
+    <div id="tooltip-consequence" class="tooltip-consequence">⚠️ Consecuencia didáctica si se cae o retira.</div>
+  </div>
+
+  <!-- CONTENEDOR DE TOASTS (Alertas Didácticas Emergentes) -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Carga del controlador JavaScript principal de la aplicación -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>
