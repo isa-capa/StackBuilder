@@ -277,6 +277,88 @@ export const LEGO_CATALOG = {
 };
 
 /**
+ * Mapa de ponderación de estabilidad profesional.
+ * Cada bloque tiene un peso que indica su impacto en la "Estabilidad del Sistema"
+ * al ser eliminado. Los cimientos técnicos valen más porque sin ellos
+ * el resto del ecosistema colapsa.
+ *
+ * Pesos por categoría:
+ *   Bases Fundacionales  → 4-7 puntos (cimientos críticos)
+ *   Estructura Aplicativa → 3-5 puntos (tecnologías aplicadas)
+ *   Calidad y Conectores  → 1-3 puntos (prácticas profesionales)
+ *   Habilidades Blandas   → 1 punto   (complemento humano)
+ *
+ * Peso total del ecosistema completo: 124 puntos = 100% estabilidad.
+ */
+export const BLOCK_WEIGHTS = {
+  // === BASES FUNDACIONALES (4-7 pts) ===
+  // --- Java Core ---
+  'java_oop': 7,              // OOP es la piedra angular de todo Java
+  'java_collections': 5,      // Colecciones y Streams son uso diario
+  'java_memory': 5,           // Memoria/concurrencia evitan caídas en producción
+  // --- Bases de Datos ---
+  'db_modeling': 5,           // Un mal modelo condena al proyecto
+  'db_sql': 6,                // SQL es indispensable para cualquier backend
+  'db_acid': 4,               // Transacciones garantizan integridad
+  // --- Fundamentos ---
+  'fund_http': 5,             // Sin HTTP no hay comunicación web
+  'fund_os': 4,               // Terminal es imprescindible en servidores
+  'fund_algo': 5,             // Algoritmos resuelven problemas de rendimiento
+
+  // === ESTRUCTURA APLICATIVA (3-5 pts) ===
+  // --- Frontend Core ---
+  'front_html': 3,            // Estructura semántica del DOM
+  'front_css': 3,             // Maquetación y diseño responsivo
+  'front_js': 4,              // JS es la base de todo frontend moderno
+  // --- Spring Boot ---
+  'spring_core': 5,           // IoC es la columna vertebral de Spring
+  'spring_web': 4,            // REST APIs conectan frontend con backend
+  'spring_data': 3,           // JPA simplifica la persistencia
+  // --- Arquitectura ---
+  'arch_design': 3,           // Patrones de diseño evitan código espagueti
+  'arch_ddd': 3,              // DDD alinea código con negocio
+  'arch_api': 3,              // API REST bien diseñada es integración limpia
+  // --- React JS ---
+  'react_components': 3,      // Componentización modular
+  'react_hooks': 3,           // Estado y ciclo de vida del cliente
+  'react_state': 3,           // Estado global y consumo de APIs
+
+  // === CALIDAD Y CONECTORES (1-3 pts) ===
+  // --- Scrum ---
+  'scrum_roles': 1,           // Roles del equipo ágil
+  'scrum_events': 1,          // Ceremonias y cadencia
+  'scrum_art': 1,             // Backlog y planificación
+  // --- Testing ---
+  'test_unit': 3,             // Testing unitario es la red de seguridad
+  'test_mock': 2,             // Mocks aíslan dependencias
+  'test_tdd': 2,              // TDD mejora el diseño del código
+  // --- Git ---
+  'git_basics': 3,            // Git es herramienta diaria obligatoria
+  'git_branch': 2,            // Branching organiza el trabajo en equipo
+  'git_pr': 1,                // PRs fomentan calidad colaborativa
+  // --- DevOps ---
+  'ops_docker': 2,            // Contenedores garantizan portabilidad
+  'ops_cicd': 2,              // CI/CD automatiza entregas
+  'ops_deploy': 1,            // Despliegue a producción
+  // --- Seguridad ---
+  'sec_authn': 3,             // Autenticación protege identidad
+  'sec_authz': 2,             // Autorización protege recursos
+  'sec_jwt': 2,               // JWT es estándar para sesiones API
+
+  // === HABILIDADES BLANDAS (1 pt cada una) ===
+  'soft_teamwork': 1,
+  'soft_comm': 1,
+  'soft_proact': 1,
+  'soft_problem': 1,
+  'soft_adapt': 1,
+  'soft_time': 1,
+  'soft_critical': 1,
+  'soft_empathy': 1,
+  'soft_learning': 1,
+  'soft_feedback': 1,
+};
+
+/**
  * Materias críticas. (Las soft skills suman estabilidad general, 
  * pero los pilares técnicos siguen siendo el punto crítico de fallo instantáneo).
  */

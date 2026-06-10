@@ -1,4 +1,4 @@
-import { LEGO_CATALOG, CRITICAL_SUBJECTS } from './legoData.js';
+import { LEGO_CATALOG, CRITICAL_SUBJECTS, BLOCK_WEIGHTS } from './legoData.js';
 import { LegoBlock } from './legoBlock.js';
 
 // Desestructuración de Matter.js
@@ -15,6 +15,7 @@ let canvas;
 let ctx;
 let animationFrameId;
 let highlightParent = null;
+let initialTotalWeight = 0;
 
 // Callbacks para comunicar eventos de física e interacción a app.js
 let onHoverBlockCallback = null;
@@ -166,6 +167,11 @@ function buildTower() {
     const x = 95 + i * 60;
     createBlockBody(info, x, row3Y);
   });
+
+  // Calcular el peso total inicial del ecosistema para la fórmula de estabilidad
+  initialTotalWeight = legoBlocks.reduce((sum, block) => {
+    return sum + (BLOCK_WEIGHTS[block.info.id] || 1);
+  }, 0);
 }
 
 /**
@@ -480,9 +486,17 @@ function setupMouseEvents() {
 
 /**
  * Calcula estadísticas dinámicas y estabilidad.
- * Estabilidad (%) = (Porcentaje Cobertura Habilidades Mínimas) * (Índice Integridad Estructural Normalizada)
+ * Fórmula de Estabilidad Ponderada:
+ *   Estabilidad (%) = (Peso de bloques presentes / Peso total inicial) × 100
+ *
+ * Cada bloque tiene un peso definido en BLOCK_WEIGHTS según su importancia:
+ *   Bases (4-7 pts)  >  Estructurales (3-5 pts)  >  Calidad (1-3 pts)  >  Soft (1 pt)
+ *
+ * Peso total del ecosistema: 124 puntos = 100% estabilidad.
+ * Ejemplo: eliminar Java OOP (7 pts) reduce ~5.6%, eliminar un Soft Skill (1 pt) reduce ~0.8%.
  */
 function calculateStats() {
+  // Caso base: todos los bloques eliminados
   if (legoBlocks.length === 0) {
     if (onStatsUpdateCallback) {
       onStatsUpdateCallback({
@@ -496,55 +510,29 @@ function calculateStats() {
     return;
   }
 
-  // 1. Cobertura Mínima Esencial (5 materias clave)
-  const activeCriticalBlocks = legoBlocks.filter(block => CRITICAL_SUBJECTS.includes(block.info.id));
-  const activeCriticalCount = activeCriticalBlocks.length;
-  const criticalCoverage = activeCriticalCount / CRITICAL_SUBJECTS.length; // 0.0 a 1.0
-  const criticalRemovedCount = CRITICAL_SUBJECTS.length - activeCriticalCount;
+  // 1. Peso ponderado actual (suma de pesos de los bloques que siguen presentes)
+  const currentWeight = legoBlocks.reduce((sum, block) => {
+    return sum + (BLOCK_WEIGHTS[block.info.id] || 1);
+  }, 0);
 
-  // 2. Integridad Estructural Basada en Física
-  let totalSpeed = 0;
-  
-  // Las materias base son permitidas en el suelo.
-  // Cualquier bloque estructural, de calidad o habilidad blanda que toque el suelo (y > 570) se considera caído (sin soporte).
+  // 2. Estabilidad = porcentaje del peso retenido respecto al peso total inicial
+  let stabilityPercentage = initialTotalWeight > 0
+    ? Math.round((currentWeight / initialTotalWeight) * 100)
+    : 0;
+  stabilityPercentage = Math.max(0, Math.min(100, stabilityPercentage));
+
+  // 3. Rastrear materias críticas eliminadas (para alerta de colapso)
+  const activeCriticalBlocks = legoBlocks.filter(block => CRITICAL_SUBJECTS.includes(block.info.id));
+  const criticalRemovedCount = CRITICAL_SUBJECTS.length - activeCriticalBlocks.length;
+
+  // 4. Contar bloques caídos (no-base que tocaron el suelo sin soporte)
   const nonBaseBlocks = legoBlocks.filter(b => b.info.category !== 'base');
   const fallenCount = nonBaseBlocks.filter(b => b.body.position.y > 570).length;
-  
-  // Porcentaje de bloques no-base que permanecen correctamente soportados
-  const supportRatio = nonBaseBlocks.length > 0 ? (nonBaseBlocks.length - fallenCount) / nonBaseBlocks.length : 1.0;
-
-  // Altura del bloque más alto de la torre
-  const minY = legoBlocks.reduce((min, b) => Math.min(min, b.body.position.y), CANVAS_HEIGHT);
-  // Altura normalizada (Originalmente Y=485. Si colapsa al suelo, Y=585+)
-  let heightScore = (600 - minY) / (600 - 480);
-  heightScore = Math.max(0, Math.min(1, heightScore));
-
-  // Combinación de la altura y el porcentaje de soporte estructural
-  let structuralIntegrity = (heightScore * 0.5) + (supportRatio * 0.5);
-
-  // Penalización por velocidad (movimiento inestable)
-  legoBlocks.forEach(b => {
-    totalSpeed += b.body.speed;
-  });
-  const avgSpeed = totalSpeed / legoBlocks.length;
-  if (avgSpeed > 0.05) {
-    structuralIntegrity -= (avgSpeed * 0.08);
-  }
-  
-  // Normalizar y ajustar rango de integridad estructural
-  structuralIntegrity = Math.max(0, Math.min(1, structuralIntegrity));
-  // Escalar para holguras
-  structuralIntegrity = Math.min(1.0, structuralIntegrity * 1.05);
-
-  // 3. Fórmula Final: Cobertura de Habilidades * Integridad Estructural
-  let stabilityPercentage = Math.round(criticalCoverage * structuralIntegrity * 100);
-  stabilityPercentage = Math.max(0, Math.min(100, stabilityPercentage));
 
   if (onStatsUpdateCallback) {
     onStatsUpdateCallback({
       stability: stabilityPercentage,
       totalBlocks: legoBlocks.length,
-      // Se consideran "caídos/suelos" todos los bloques no-base que han tocado el suelo
       fallenBlocks: fallenCount,
       activeBlocks: legoBlocks.length - fallenCount,
       criticalRemoved: criticalRemovedCount
